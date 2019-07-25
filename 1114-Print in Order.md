@@ -36,51 +36,34 @@ Note: We do not know how the threads will be scheduled in the operating system, 
 ```java
 class Foo {
 
-    private java.util.concurrent.locks.Lock lock;
-    private java.util.concurrent.locks.Condition c1;
-    private java.util.concurrent.locks.Condition c2;
+    private java.util.concurrent.CountDownLatch second;
+    private java.util.concurrent.CountDownLatch third;
     
     public Foo() {
-        lock = new java.util.concurrent.locks.ReentrantLock();
-        c1 = lock.newCondition();
-        c2 = lock.newCondition();
+        second = new java.util.concurrent.CountDownLatch(1);
+        third = new java.util.concurrent.CountDownLatch(1);
     }
 
     public void first(Runnable printFirst) throws InterruptedException {
         
         // printFirst.run() outputs "first". Do not change or remove this line.
-        try{
-            lock.lock();
-            printFirst.run();
-            c1.signal();
-        }finally{
-            lock.unlock();
-        }
+        printFirst.run();
+        second.countDown();
     }
 
     public void second(Runnable printSecond) throws InterruptedException {
         
+        second.await();
         // printSecond.run() outputs "second". Do not change or remove this line.
-        try{
-            lock.lock();
-            c1.await();
-            printSecond.run();
-            c2.signal();            
-        }finally{
-            lock.unlock();
-        }
+        printSecond.run();
+        third.countDown();
     }
 
     public void third(Runnable printThird) throws InterruptedException {
         
+        third.await();
         // printThird.run() outputs "third". Do not change or remove this line.
-        try{
-            lock.lock();
-            c2.await();
-            printThird.run();
-        }finally{
-            lock.unlock();   
-        }
+        printThird.run();
     }
 }
 ```
